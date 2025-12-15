@@ -259,7 +259,7 @@ def desenhar_etiqueta_individual(c, x, y, w, h, p):
     enf = limpar_valor(p.get('ENFERMARIA', ''))
     leito = limpar_valor(p.get('LEITO', ''))
     dieta = limpar_valor(p.get('DIETA', ''))
-    obs = limpar_valor(p.get('OBSERVAÇÕES', ''))
+    obs = limpar_valor(p.get('OBSERVAÇÕES', '')) 
     if len(obs) > 120: obs = obs[:117] + "..."
 
     # === DESENHO LINHA POR LINHA COM ESPAÇAMENTO CONTROLADO ===

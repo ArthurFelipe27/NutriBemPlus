@@ -4,6 +4,7 @@ let filaImpressao = [];
 let setorAtual = 'ENF';
 let abaEditorAtual = 'ENF';
 
+// Inicialização
 window.addEventListener('pywebviewready', carregarDados);
 setTimeout(() => { if (dadosEnf.length === 0) carregarDados(); }, 1500);
 
@@ -17,6 +18,7 @@ function escaparTexto(texto) {
     return String(texto).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
+// --- NAVEGAÇÃO ---
 function mudarAba(aba) {
     document.querySelectorAll('.tab-content').forEach(d => d.style.display = 'none');
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -44,7 +46,10 @@ function mudarAba(aba) {
 
         document.getElementById('painelBusca').style.display = 'block';
         renderizarLista(getDadosAtuais());
-        filaImpressao = []; atualizarFila();
+
+        // Opcional: Limpar fila ao trocar de aba para evitar confusão
+        filaImpressao = [];
+        atualizarFila();
     }
 }
 
@@ -54,6 +59,7 @@ function getDadosAtuais() {
     return dadosUpa;
 }
 
+// --- CARREGAMENTO DE DADOS ---
 async function carregarDados() {
     if (window.pywebview && window.pywebview.api) {
         try {
@@ -69,16 +75,21 @@ async function carregarDados() {
     }
 }
 
+// --- LISTA LATERAL (BUSCA) ---
 function renderizarLista(lista) {
     const div = document.getElementById("listaPacientes");
     div.innerHTML = "";
-    if (!lista || lista.length === 0) { div.innerHTML = "<p style='text-align:center;padding:20px'>Vazio.</p>"; return; }
+    if (!lista || lista.length === 0) { div.innerHTML = "<p style='text-align:center;padding:20px;color:#888'>Vazio.</p>"; return; }
+
     lista.forEach(p => {
         let item = document.createElement("div");
         item.className = "patient-item";
         item.onclick = () => adicionarFila(p);
+
         let sub = (setorAtual === 'ENF') ? p['ENFERMARIA'] : (setorAtual === 'UTI' ? 'UTI' : 'UPA');
-        item.innerHTML = `<h4>${p['LEITO']} - ${p['NOME DO PACIENTE']}</h4><p>${sub} | ${p['DIETA'] || ''}</p>`;
+        let dieta = p['DIETA'] ? p['DIETA'] : '---';
+
+        item.innerHTML = `<h4>${p['LEITO']} - ${p['NOME DO PACIENTE']}</h4><p>${sub} | ${dieta}</p>`;
         div.appendChild(item);
     });
 }
@@ -94,6 +105,7 @@ function filtrarLista() {
     renderizarLista(filtrados);
 }
 
+// --- EDITOR DE PLANILHA ---
 function renderizarEditor() {
     const container = document.getElementById("editorControls");
     const cls = (aba) => abaEditorAtual === aba ? 'btn-primary' : 'btn-secondary';
@@ -182,17 +194,53 @@ async function salvarExcel() {
     }
 }
 
-function adicionarFila(p) { filaImpressao.push(p); atualizarFila(); }
-function limparFila() { filaImpressao = []; atualizarFila(); }
-function adicionarTodos() { filaImpressao = [...getDadosAtuais()]; atualizarFila(); }
+// --- FUNÇÕES DE FILA (ATUALIZADAS) ---
+
+function adicionarFila(p) {
+    filaImpressao.push(p);
+    atualizarFila();
+}
+
+function limparFila() {
+    filaImpressao = [];
+    atualizarFila();
+}
+
+function adicionarTodos() {
+    let lista = getDadosAtuais();
+    filaImpressao = [...lista]; // Cria cópia
+    atualizarFila();
+}
+
+// Nova função para remover 1 item específico
+function removerDaFila(index) {
+    filaImpressao.splice(index, 1);
+    atualizarFila();
+}
+
 function atualizarFila() {
     document.getElementById("contadorFila").innerText = filaImpressao.length + " etiquetas";
     const ul = document.getElementById("listaFila");
     ul.innerHTML = "";
-    if (filaImpressao.length === 0) ul.innerHTML = '<li class="empty-msg">Fila vazia.</li>';
-    else filaImpressao.forEach((p, i) => {
-        ul.innerHTML += `<li ondblclick="filaImpressao.splice(${i},1);atualizarFila()">✅ ${p['LEITO']} - ${p['NOME DO PACIENTE']}</li>`;
-    });
+
+    if (filaImpressao.length === 0) {
+        ul.innerHTML = '<li class="empty-msg" style="justify-content: center; color: #777;">Fila vazia.</li>';
+    } else {
+        filaImpressao.forEach((p, i) => {
+            let nome = p['NOME DO PACIENTE'] || 'Sem Nome';
+            let leito = p['LEITO'] || '?';
+
+            // Item da lista com botão "X" para remover
+            ul.innerHTML += `
+                <li>
+                    <span>✅ <b>${leito}</b> - ${nome}</span>
+                    <button class="btn-remove-queue" onclick="removerDaFila(${i})" title="Remover este paciente">
+                        <span class="material-icons">close</span>
+                    </button>
+                </li>
+            `;
+        });
+    }
 }
 
 async function imprimirFila() {
@@ -201,6 +249,7 @@ async function imprimirFila() {
     if (msg !== "Cancelado.") alert(msg);
 }
 
+// --- RELATÓRIOS ---
 async function gerarRelatorioSimples() {
     let msg;
     if (setorAtual === 'ENF') msg = await pywebview.api.gerar_relatorio_enf('simples');

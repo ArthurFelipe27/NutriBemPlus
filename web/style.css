@@ -1,33 +1,16 @@
 /* --- VARIÁVEIS GLOBAIS (TEMA DARK) --- */
 :root {
     --bg-color: #1e1e1e;
-    /* Fundo Principal */
     --sidebar-color: #252526;
-    /* Fundo Sidebar */
     --card-color: #2d2d30;
-    /* Fundo Cartões/Tabelas */
     --text-color: #ffffff;
-    /* Texto Principal */
     --text-muted: #aaaaaa;
-    /* Texto Secundário */
     --border-color: #3e3e42;
-    /* Bordas */
 
-    /* Cores de Ação */
     --accent-color: #007acc;
-    /* Azul VS Code (Primário) */
     --success-color: #28a745;
-    /* Verde Sucesso */
     --danger-color: #e74c3c;
-    /* Vermelho Perigo */
     --warning-color: #f1c40f;
-    /* Amarelo Alerta */
-
-    /* Cores Específicas */
-    --enf-color: #2e86de;
-    /* Cor temática Enfermaria */
-    --uti-color: #e84118;
-    /* Cor temática UTI */
 }
 
 /* --- RESET BÁSICO --- */
@@ -40,22 +23,28 @@ body {
     overflow: hidden;
     /* App não deve ter scroll na janela inteira */
     user-select: none;
-    /* Sensação de App Nativo */
 }
 
-/* --- LAYOUT PRINCIPAL --- */
 .app-container {
     display: flex;
     height: 100vh;
+    /* Garante altura total da tela */
+    overflow: hidden;
 }
 
 /* --- SIDEBAR (ESQUERDA) --- */
 .sidebar {
     width: 320px;
+    min-width: 320px;
     background-color: var(--sidebar-color);
     border-right: 1px solid var(--border-color);
+
+    /* FLEXBOX É O SEGREDO DO SCROLL */
     display: flex;
     flex-direction: column;
+    /* Organiza itens um embaixo do outro */
+    height: 100vh;
+    /* Altura fixa da tela */
     padding: 15px;
     box-sizing: border-box;
 }
@@ -65,16 +54,17 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+    flex-shrink: 0;
+    /* Impede que o cabeçalho encolha */
 }
 
 .sidebar-header h2 {
     margin: 0;
     font-size: 1.2rem;
     font-weight: 600;
-    color: var(--text-color);
 }
 
-/* Botão de Atualizar (Sync) */
+/* Botão Sync */
 .btn-icon {
     background: transparent;
     border: 1px solid var(--border-color);
@@ -82,7 +72,7 @@ body {
     cursor: pointer;
     padding: 6px;
     border-radius: 6px;
-    transition: all 0.3s ease;
+    transition: 0.3s;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -93,14 +83,15 @@ body {
     color: white;
     border-color: var(--accent-color);
     transform: rotate(180deg);
-    /* Efeito de giro */
 }
 
-/* Menu de Navegação */
+/* Menu Navegação */
 .nav-menu {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    flex-shrink: 0;
+    /* Impede que o menu encolha */
 }
 
 .nav-btn {
@@ -130,20 +121,31 @@ body {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-.nav-btn .material-icons {
-    font-size: 20px;
+/* --- ÁREA DE BUSCA E LISTA (AQUI ESTÁ A CORREÇÃO) --- */
+
+/* O Container que segura a busca e a lista */
+#painelBusca {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    /* Ocupa TODO o espaço vertical restante */
+    min-height: 0;
+    /* Truque do Flexbox para permitir scroll interno */
+    margin-top: 10px;
+    overflow: hidden;
+    /* Garante que nada saia deste quadrado */
 }
 
-/* Busca */
 .search-box {
     display: flex;
     align-items: center;
     background: #1e1e1e;
-    /* Mais escuro que a sidebar */
     padding: 10px;
     border-radius: 6px;
     border: 1px solid var(--border-color);
-    margin-bottom: 15px;
+    margin-bottom: 10px;
+    flex-shrink: 0;
+    /* Busca não encolhe */
 }
 
 .search-box input {
@@ -156,12 +158,14 @@ body {
     font-size: 14px;
 }
 
-/* Lista de Pacientes */
+/* A Lista de Pacientes em si */
 .patient-list {
     flex: 1;
+    /* Cresce para ocupar o espaço do #painelBusca */
     overflow-y: auto;
+    /* ATIVA O SCROLL VERTICAL */
     padding-right: 5px;
-    /* Espaço para scrollbar */
+    /* Espaço para a barra não colar no texto */
 }
 
 .patient-item {
@@ -196,6 +200,7 @@ body {
     flex: 1;
     padding: 30px;
     overflow-y: auto;
+    /* Scroll na direita também se precisar */
     background-color: var(--bg-color);
 }
 
@@ -219,11 +224,10 @@ header h1 {
     font-weight: bold;
 }
 
-/* Dashboard Grid */
+/* Dashboard */
 .dashboard-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    /* 2 Colunas */
     gap: 25px;
 }
 
@@ -247,7 +251,6 @@ header h1 {
     margin-bottom: 15px;
 }
 
-/* Área da Fila */
 .queue-area {
     background: #1e1e1e;
     height: 250px;
@@ -264,18 +267,23 @@ header h1 {
     margin: 0;
 }
 
+/* --- ESTILO DA FILA DE IMPRESSÃO --- */
 #listaFila li {
     padding: 8px;
     border-bottom: 1px solid #333;
     font-size: 13px;
     display: flex;
+    /* Alinha itens lado a lado */
+    justify-content: space-between;
+    /* Nome na ponta, botão na outra */
     align-items: center;
-    cursor: alias;
+    /* Centraliza verticalmente */
+    background-color: transparent;
+    transition: background 0.2s;
 }
 
 #listaFila li:hover {
     background-color: #2a2a2a;
-    color: #fff;
 }
 
 .queue-status {
@@ -286,7 +294,7 @@ header h1 {
     margin-bottom: 15px;
 }
 
-/* Botões de Ação */
+/* --- BOTÕES --- */
 .actions {
     display: flex;
     gap: 10px;
@@ -297,7 +305,7 @@ header h1 {
 }
 
 .btn {
-    padding: 10px 15px;
+    padding: 10px 20px;
     border: none;
     border-radius: 6px;
     cursor: pointer;
@@ -309,8 +317,20 @@ header h1 {
     justify-content: center;
     gap: 6px;
     transition: background 0.2s;
+    width: auto;
+}
+
+.card .btn {
     width: 100%;
-    /* Botões ocupam largura total do pai */
+}
+
+#editorControls .btn {
+    min-width: 120px;
+    padding: 12px 20px;
+}
+
+header .btn-success {
+    padding: 10px 25px;
 }
 
 .btn:hover {
@@ -343,14 +363,40 @@ header h1 {
     background-color: #8e44ad;
 }
 
+/* Botão de Remover da Fila (X vermelho) */
+.btn-remove-queue {
+    background: transparent;
+    border: none;
+    color: #e74c3c;
+    /* Vermelho */
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-remove-queue:hover {
+    background-color: rgba(231, 76, 60, 0.2);
+    /* Fundo vermelho suave */
+    color: #ff6b6b;
+}
+
+.btn-remove-queue .material-icons {
+    font-size: 18px;
+    /* Tamanho do ícone */
+}
+
 /* --- EDITOR DE EXCEL --- */
 .excel-container {
     background: var(--sidebar-color);
     padding: 1px;
-    /* Borda fina */
     border-radius: 8px;
     overflow-x: auto;
     border: 1px solid var(--border-color);
+    max-height: 75vh;
+    overflow-y: auto;
 }
 
 #tabelaEditor {
@@ -368,8 +414,8 @@ header h1 {
     text-align: left;
     border-bottom: 2px solid var(--border-color);
     position: sticky;
-    /* Cabeçalho fixo */
     top: 0;
+    z-index: 10;
 }
 
 #tabelaEditor td {
@@ -377,27 +423,25 @@ header h1 {
     padding: 0;
 }
 
-/* Garante contraste nos inputs da tabela */
 #tabelaEditor input {
-    color: #ffffff;
-    /* Texto branco */
-    background-color: transparent;
-    border: 1px solid transparent;
-    /* Borda invisível até clicar */
-    padding: 8px;
     width: 100%;
-}
-
-#tabelaEditor input:focus {
-    background-color: #3e3e42;
-    /* Fundo cinza ao clicar */
-    border-bottom: 2px solid var(--accent-color);
+    border: none;
+    background: transparent;
+    color: var(--text-color);
+    padding: 10px 8px;
+    font-family: inherit;
+    font-size: 13px;
     outline: none;
+    box-sizing: border-box;
 }
 
 #tabelaEditor tr:hover {
     background-color: #2d2d30;
-    /* Destaca a linha ao passar o mouse */
+}
+
+#tabelaEditor input:focus {
+    background-color: #3e3e42;
+    border-bottom: 2px solid var(--accent-color);
 }
 
 .btn-remove {
@@ -428,10 +472,10 @@ header h1 {
     }
 }
 
-/* Scrollbars Personalizadas (WebKit) */
+/* Scrollbars Bonitas (Para Chrome/Edge/Webview) */
 ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
 }
 
 ::-webkit-scrollbar-track {
@@ -439,10 +483,11 @@ header h1 {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #444;
-    border-radius: 4px;
+    background: #555;
+    border-radius: 5px;
+    border: 2px solid var(--bg-color);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #555;
+    background: #777;
 }
