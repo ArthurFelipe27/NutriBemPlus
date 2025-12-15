@@ -21,14 +21,16 @@ body {
     background-color: var(--bg-color);
     color: var(--text-color);
     overflow: hidden;
-    /* App não deve ter scroll na janela inteira */
+    /* App não tem scroll na janela inteira */
+    height: 100vh;
+    width: 100vw;
     user-select: none;
 }
 
 .app-container {
     display: flex;
-    height: 100vh;
-    /* Garante altura total da tela */
+    height: 100%;
+    width: 100%;
     overflow: hidden;
 }
 
@@ -39,14 +41,20 @@ body {
     background-color: var(--sidebar-color);
     border-right: 1px solid var(--border-color);
 
-    /* FLEXBOX É O SEGREDO DO SCROLL */
+    /* FLEXBOX PARA CONTROLAR ALTURA */
     display: flex;
     flex-direction: column;
-    /* Organiza itens um embaixo do outro */
-    height: 100vh;
-    /* Altura fixa da tela */
+    height: 100%;
+    /* Ocupa 100% da altura da janela */
     padding: 15px;
     box-sizing: border-box;
+}
+
+.sidebar-header,
+.nav-menu,
+hr {
+    flex-shrink: 0;
+    /* Esses elementos NUNCA encolhem */
 }
 
 .sidebar-header {
@@ -54,8 +62,6 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-    flex-shrink: 0;
-    /* Impede que o cabeçalho encolha */
 }
 
 .sidebar-header h2 {
@@ -90,8 +96,6 @@ body {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    flex-shrink: 0;
-    /* Impede que o menu encolha */
 }
 
 .nav-btn {
@@ -121,19 +125,17 @@ body {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-/* --- ÁREA DE BUSCA E LISTA (AQUI ESTÁ A CORREÇÃO) --- */
-
-/* O Container que segura a busca e a lista */
+/* --- ÁREA DE BUSCA E LISTA (CORREÇÃO DE SCROLL) --- */
 #painelBusca {
     display: flex;
     flex-direction: column;
     flex: 1;
-    /* Ocupa TODO o espaço vertical restante */
+    /* Ocupa o resto da altura disponível */
     min-height: 0;
-    /* Truque do Flexbox para permitir scroll interno */
+    /* Importante para o Firefox/Chrome entenderem o limite */
     margin-top: 10px;
     overflow: hidden;
-    /* Garante que nada saia deste quadrado */
+    /* Impede que estoure a tela */
 }
 
 .search-box {
@@ -145,7 +147,6 @@ body {
     border: 1px solid var(--border-color);
     margin-bottom: 10px;
     flex-shrink: 0;
-    /* Busca não encolhe */
 }
 
 .search-box input {
@@ -158,14 +159,14 @@ body {
     font-size: 14px;
 }
 
-/* A Lista de Pacientes em si */
+/* Lista de Pacientes */
 .patient-list {
-    flex: 1;
-    /* Cresce para ocupar o espaço do #painelBusca */
+    flex-grow: 1;
+    /* Cresce o máximo possível */
     overflow-y: auto;
-    /* ATIVA O SCROLL VERTICAL */
+    /* Scroll vertical */
+    overflow-x: hidden;
     padding-right: 5px;
-    /* Espaço para a barra não colar no texto */
 }
 
 .patient-item {
@@ -195,13 +196,14 @@ body {
     color: var(--text-muted);
 }
 
-/* --- CONTEÚDO PRINCIPAL (DIREITA) --- */
+/* --- CONTEÚDO PRINCIPAL --- */
 .main-content {
     flex: 1;
     padding: 30px;
     overflow-y: auto;
-    /* Scroll na direita também se precisar */
     background-color: var(--bg-color);
+    height: 100%;
+    box-sizing: border-box;
 }
 
 header {
@@ -229,6 +231,8 @@ header h1 {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 25px;
+    /* Ajuste para telas pequenas */
+    min-height: min-content;
 }
 
 .card {
@@ -237,6 +241,8 @@ header h1 {
     border-radius: 10px;
     border: 1px solid var(--border-color);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
 }
 
 .card h3 {
@@ -251,6 +257,7 @@ header h1 {
     margin-bottom: 15px;
 }
 
+/* Área da Fila */
 .queue-area {
     background: #1e1e1e;
     height: 250px;
@@ -261,29 +268,48 @@ header h1 {
     margin-bottom: 10px;
 }
 
+/* Estilo dos itens da fila (com botão X) */
 #listaFila {
     list-style: none;
     padding: 0;
     margin: 0;
 }
 
-/* --- ESTILO DA FILA DE IMPRESSÃO --- */
 #listaFila li {
     padding: 8px;
     border-bottom: 1px solid #333;
     font-size: 13px;
     display: flex;
-    /* Alinha itens lado a lado */
     justify-content: space-between;
-    /* Nome na ponta, botão na outra */
+    /* Texto na ponta, botão na outra */
     align-items: center;
-    /* Centraliza verticalmente */
     background-color: transparent;
     transition: background 0.2s;
 }
 
 #listaFila li:hover {
     background-color: #2a2a2a;
+}
+
+.btn-remove-queue {
+    background: transparent;
+    border: none;
+    color: #e74c3c;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-remove-queue:hover {
+    background-color: rgba(231, 76, 60, 0.2);
+    color: #ff6b6b;
+}
+
+.btn-remove-queue .material-icons {
+    font-size: 18px;
 }
 
 .queue-status {
@@ -361,31 +387,6 @@ header .btn-success {
 
 .btn-purple {
     background-color: #8e44ad;
-}
-
-/* Botão de Remover da Fila (X vermelho) */
-.btn-remove-queue {
-    background: transparent;
-    border: none;
-    color: #e74c3c;
-    /* Vermelho */
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.btn-remove-queue:hover {
-    background-color: rgba(231, 76, 60, 0.2);
-    /* Fundo vermelho suave */
-    color: #ff6b6b;
-}
-
-.btn-remove-queue .material-icons {
-    font-size: 18px;
-    /* Tamanho do ícone */
 }
 
 /* --- EDITOR DE EXCEL --- */
@@ -472,19 +473,20 @@ header .btn-success {
     }
 }
 
-/* Scrollbars Bonitas (Para Chrome/Edge/Webview) */
+/* Scrollbars Visíveis e Largas */
 ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 12px;
+    height: 12px;
 }
 
+/* Aumentei um pouco */
 ::-webkit-scrollbar-track {
     background: var(--bg-color);
 }
 
 ::-webkit-scrollbar-thumb {
     background: #555;
-    border-radius: 5px;
+    border-radius: 6px;
     border: 2px solid var(--bg-color);
 }
 

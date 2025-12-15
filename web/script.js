@@ -1,6 +1,6 @@
 let dadosEnf = [], dadosUti = [], dadosUpa = [];
 let editorEnf = [], editorUti = [], editorUpa = [];
-let filaImpressao = [];
+let filaImpressao = []; // AGORA É UMA LISTA GLOBAL QUE NUNCA ZERA SOZINHA
 let setorAtual = 'ENF';
 let abaEditorAtual = 'ENF';
 
@@ -45,11 +45,14 @@ function mudarAba(aba) {
         document.getElementById('tituloSetor').innerText = titulos[setorAtual];
 
         document.getElementById('painelBusca').style.display = 'block';
+
+        // Renderiza a lista do setor selecionado
         renderizarLista(getDadosAtuais());
 
-        // Opcional: Limpar fila ao trocar de aba para evitar confusão
-        filaImpressao = [];
-        atualizarFila();
+        // IMPORTANTE: NÃO LIMPAMOS MAIS A FILA AQUI! 
+        // filaImpressao = []; <--- ISSO FOI REMOVIDO PARA PERMITIR MISTURAR
+
+        atualizarFila(); // Apenas redesenha a fila que já existe
     }
 }
 
@@ -194,9 +197,14 @@ async function salvarExcel() {
     }
 }
 
-// --- FUNÇÕES DE FILA (ATUALIZADAS) ---
+// --- FUNÇÕES DE FILA (ATUALIZADAS E GLOBAIS) ---
 
 function adicionarFila(p) {
+    // Evita duplicatas exatas na fila (Opcional, mas recomendado)
+    // Se quiser permitir duplicatas, remova as 3 linhas abaixo
+    let duplicado = filaImpressao.some(item => item['LEITO'] === p['LEITO'] && item['NOME DO PACIENTE'] === p['NOME DO PACIENTE']);
+    if (duplicado) return;
+
     filaImpressao.push(p);
     atualizarFila();
 }
@@ -208,7 +216,8 @@ function limparFila() {
 
 function adicionarTodos() {
     let lista = getDadosAtuais();
-    filaImpressao = [...lista]; // Cria cópia
+    // Adiciona apenas quem ainda não está na fila para não duplicar
+    lista.forEach(p => adicionarFila(p));
     atualizarFila();
 }
 
