@@ -14,10 +14,17 @@
         <aside class="sidebar">
             <div class="sidebar-header">
                 <h2>Menu</h2>
-                <button class="btn-icon" onclick="recarregarDadosComFeedback()" title="Recarregar">
-                    <span class="material-icons">sync</span>
-                </button>
+                <div class="header-actions">
+                    <button class="btn-icon" onclick="alternarTema()" title="Alternar Tema (Claro/Escuro)">
+                        <span class="material-icons" id="iconTema">dark_mode</span>
+                    </button>
+                    <button class="btn-icon btn-sync" onclick="recarregarDadosComFeedback()"
+                        title="Recarregar Planilha">
+                        <span class="material-icons">sync</span>
+                    </button>
+                </div>
             </div>
+
             <nav class="nav-menu">
                 <button class="nav-btn active" onclick="mudarAba('enf')">
                     <span class="material-icons">local_hospital</span> Enfermarias
@@ -32,10 +39,12 @@
                     <span class="material-icons">edit_note</span> Editor
                 </button>
             </nav>
-            <hr style="border-color: #3e3e42; margin: 20px 0;">
+
+            <hr style="border-color: var(--border-color); margin: 20px 0;">
+
             <div id="painelBusca">
                 <div class="search-box">
-                    <span class="material-icons">search</span>
+                    <span class="material-icons" style="color:var(--text-muted)">search</span>
                     <input type="text" id="inputBusca" placeholder="Buscar..." onkeyup="filtrarLista()">
                 </div>
                 <div id="listaPacientes" class="patient-list">
@@ -50,12 +59,14 @@
                     <h1>Sistema NutriBem - <span id="tituloSetor" class="plus">Enfermarias</span></h1>
                     <p>Gestão de Dietas e Etiquetas</p>
                 </header>
+
                 <div class="dashboard-grid">
                     <div class="card">
                         <h3><span class="material-icons">style</span> Fila de Impressão</h3>
                         <div class="queue-area">
                             <ul id="listaFila">
-                                <li class="empty-msg">Fila vazia.</li>
+                                <li class="empty-msg" style="text-align:center; color:var(--text-muted); padding:20px;">
+                                    Fila vazia.</li>
                             </ul>
                         </div>
                         <div class="queue-status" id="contadorFila">0 etiquetas</div>

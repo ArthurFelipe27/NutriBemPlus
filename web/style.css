@@ -1,4 +1,4 @@
-/* --- VARIÁVEIS GLOBAIS (TEMA DARK) --- */
+/* --- VARIÁVEIS DE CORES (TEMA PADRÃO / DARK) --- */
 :root {
     --bg-color: #1e1e1e;
     --sidebar-color: #252526;
@@ -6,6 +6,8 @@
     --text-color: #ffffff;
     --text-muted: #aaaaaa;
     --border-color: #3e3e42;
+    --input-bg: transparent;
+    --hover-color: #383838;
 
     --accent-color: #007acc;
     --success-color: #28a745;
@@ -13,48 +15,65 @@
     --warning-color: #f1c40f;
 }
 
-/* --- RESET BÁSICO --- */
+/* --- TEMA LIGHT --- */
+[data-theme="light"] {
+    --bg-color: #f0f2f5;
+    --sidebar-color: #ffffff;
+    --card-color: #ffffff;
+    --text-color: #2c3e50;
+    --text-muted: #666666;
+    --border-color: #dcdcdc;
+    --input-bg: #f9f9f9;
+    --hover-color: #f0f0f0;
+}
+
+/* --- RESET ABSOLUTO PARA GARANTIR SCROLL --- */
+html,
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    height: 100%;
+    width: 100%;
     margin: 0;
     padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: var(--bg-color);
     color: var(--text-color);
     overflow: hidden;
-    /* App não tem scroll na janela inteira */
-    height: 100vh;
-    width: 100vw;
+    /* IMPORTANTE: Remove scroll da janela inteira */
     user-select: none;
+    transition: background-color 0.3s, color 0.3s;
 }
 
 .app-container {
     display: flex;
-    height: 100%;
-    width: 100%;
+    height: 100vh;
+    /* Força altura total da viewport */
+    width: 100vw;
     overflow: hidden;
 }
 
-/* --- SIDEBAR (ESQUERDA) --- */
+/* --- SIDEBAR --- */
 .sidebar {
     width: 320px;
     min-width: 320px;
     background-color: var(--sidebar-color);
     border-right: 1px solid var(--border-color);
 
-    /* FLEXBOX PARA CONTROLAR ALTURA */
+    /* ESTRUTURA FLEX PARA TRAVAR ALTURA */
     display: flex;
     flex-direction: column;
-    height: 100%;
-    /* Ocupa 100% da altura da janela */
+    height: 100vh;
+    /* ALTURA FIXA AGRESSIVA */
+    max-height: 100vh;
     padding: 15px;
     box-sizing: border-box;
+    transition: background-color 0.3s;
 }
 
+/* Itens que NÃO podem encolher */
 .sidebar-header,
 .nav-menu,
 hr {
     flex-shrink: 0;
-    /* Esses elementos NUNCA encolhem */
 }
 
 .sidebar-header {
@@ -70,7 +89,12 @@ hr {
     font-weight: 600;
 }
 
-/* Botão Sync */
+.header-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* Botões Icons */
 .btn-icon {
     background: transparent;
     border: 1px solid var(--border-color);
@@ -88,10 +112,13 @@ hr {
     background-color: var(--accent-color);
     color: white;
     border-color: var(--accent-color);
+}
+
+.btn-sync:hover {
     transform: rotate(180deg);
 }
 
-/* Menu Navegação */
+/* Menu */
 .nav-menu {
     display: flex;
     flex-direction: column;
@@ -114,8 +141,8 @@ hr {
 }
 
 .nav-btn:hover {
-    background: #3e3e42;
-    color: white;
+    background: var(--hover-color);
+    color: var(--text-color);
 }
 
 .nav-btn.active {
@@ -125,23 +152,23 @@ hr {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-/* --- ÁREA DE BUSCA E LISTA (CORREÇÃO DE SCROLL) --- */
+/* --- CORREÇÃO DO SCROLL DO SIDEBAR --- */
 #painelBusca {
     display: flex;
     flex-direction: column;
     flex: 1;
-    /* Ocupa o resto da altura disponível */
+    /* Ocupa todo o espaço vertical livre */
     min-height: 0;
-    /* Importante para o Firefox/Chrome entenderem o limite */
+    /* OBRIGATÓRIO: Permite encolher para caber na tela */
     margin-top: 10px;
     overflow: hidden;
-    /* Impede que estoure a tela */
+    /* Corta o excesso */
 }
 
 .search-box {
     display: flex;
     align-items: center;
-    background: #1e1e1e;
+    background: var(--input-bg);
     padding: 10px;
     border-radius: 6px;
     border: 1px solid var(--border-color);
@@ -152,20 +179,21 @@ hr {
 .search-box input {
     background: transparent;
     border: none;
-    color: white;
+    color: var(--text-color);
     width: 100%;
     margin-left: 10px;
     outline: none;
     font-size: 14px;
 }
 
-/* Lista de Pacientes */
+/* A Lista Rolável */
 .patient-list {
-    flex-grow: 1;
-    /* Cresce o máximo possível */
+    flex: 1;
+    /* Cresce para ocupar espaço do pai */
+    height: 100%;
+    /* Garante altura */
     overflow-y: auto;
-    /* Scroll vertical */
-    overflow-x: hidden;
+    /* Scroll vertical APENAS AQUI */
     padding-right: 5px;
 }
 
@@ -175,19 +203,20 @@ hr {
     margin-bottom: 8px;
     border-radius: 6px;
     cursor: pointer;
+    border: 1px solid var(--border-color);
     border-left: 4px solid transparent;
     transition: 0.2s;
 }
 
 .patient-item:hover {
-    background: #383838;
+    background: var(--hover-color);
     border-left-color: var(--accent-color);
 }
 
 .patient-item h4 {
     margin: 0;
     font-size: 14px;
-    color: #fff;
+    color: var(--text-color);
 }
 
 .patient-item p {
@@ -202,8 +231,9 @@ hr {
     padding: 30px;
     overflow-y: auto;
     background-color: var(--bg-color);
-    height: 100%;
+    height: 100vh;
     box-sizing: border-box;
+    transition: background-color 0.3s;
 }
 
 header {
@@ -226,13 +256,10 @@ header h1 {
     font-weight: bold;
 }
 
-/* Dashboard */
 .dashboard-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 25px;
-    /* Ajuste para telas pequenas */
-    min-height: min-content;
 }
 
 .card {
@@ -240,9 +267,10 @@ header h1 {
     padding: 20px;
     border-radius: 10px;
     border: 1px solid var(--border-color);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     display: flex;
     flex-direction: column;
+    transition: background-color 0.3s;
 }
 
 .card h3 {
@@ -257,9 +285,9 @@ header h1 {
     margin-bottom: 15px;
 }
 
-/* Área da Fila */
+/* Fila */
 .queue-area {
-    background: #1e1e1e;
+    background: var(--bg-color);
     height: 250px;
     border-radius: 6px;
     overflow-y: auto;
@@ -268,7 +296,6 @@ header h1 {
     margin-bottom: 10px;
 }
 
-/* Estilo dos itens da fila (com botão X) */
 #listaFila {
     list-style: none;
     padding: 0;
@@ -277,24 +304,24 @@ header h1 {
 
 #listaFila li {
     padding: 8px;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid var(--border-color);
     font-size: 13px;
     display: flex;
     justify-content: space-between;
-    /* Texto na ponta, botão na outra */
     align-items: center;
     background-color: transparent;
     transition: background 0.2s;
+    color: var(--text-color);
 }
 
 #listaFila li:hover {
-    background-color: #2a2a2a;
+    background-color: var(--hover-color);
 }
 
 .btn-remove-queue {
     background: transparent;
     border: none;
-    color: #e74c3c;
+    color: var(--danger-color);
     cursor: pointer;
     padding: 4px;
     border-radius: 4px;
@@ -308,10 +335,6 @@ header h1 {
     color: #ff6b6b;
 }
 
-.btn-remove-queue .material-icons {
-    font-size: 18px;
-}
-
 .queue-status {
     text-align: right;
     font-size: 12px;
@@ -320,7 +343,7 @@ header h1 {
     margin-bottom: 15px;
 }
 
-/* --- BOTÕES --- */
+/* Botões */
 .actions {
     display: flex;
     gap: 10px;
@@ -342,7 +365,7 @@ header h1 {
     align-items: center;
     justify-content: center;
     gap: 6px;
-    transition: background 0.2s;
+    transition: 0.2s;
     width: auto;
 }
 
@@ -373,8 +396,8 @@ header .btn-success {
 }
 
 .btn-secondary {
-    background-color: #444;
-    color: #ccc;
+    background-color: #666;
+    color: white;
 }
 
 .btn-success {
@@ -389,7 +412,7 @@ header .btn-success {
     background-color: #8e44ad;
 }
 
-/* --- EDITOR DE EXCEL --- */
+/* Editor */
 .excel-container {
     background: var(--sidebar-color);
     padding: 1px;
@@ -437,11 +460,11 @@ header .btn-success {
 }
 
 #tabelaEditor tr:hover {
-    background-color: #2d2d30;
+    background-color: var(--hover-color);
 }
 
 #tabelaEditor input:focus {
-    background-color: #3e3e42;
+    background-color: var(--hover-color);
     border-bottom: 2px solid var(--accent-color);
 }
 
@@ -458,7 +481,6 @@ header .btn-success {
     background-color: rgba(231, 76, 60, 0.2);
 }
 
-/* --- UTILITÁRIOS --- */
 .loading {
     color: var(--text-muted);
     text-align: center;
@@ -473,21 +495,20 @@ header .btn-success {
     }
 }
 
-/* Scrollbars Visíveis e Largas */
+/* Scrollbars Visíveis */
 ::-webkit-scrollbar {
     width: 12px;
     height: 12px;
 }
 
-/* Aumentei um pouco */
 ::-webkit-scrollbar-track {
     background: var(--bg-color);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #555;
+    background: #999;
     border-radius: 6px;
-    border: 2px solid var(--bg-color);
+    border: 3px solid var(--bg-color);
 }
 
 ::-webkit-scrollbar-thumb:hover {

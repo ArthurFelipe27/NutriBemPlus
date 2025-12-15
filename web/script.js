@@ -1,12 +1,38 @@
 let dadosEnf = [], dadosUti = [], dadosUpa = [];
 let editorEnf = [], editorUti = [], editorUpa = [];
-let filaImpressao = []; // AGORA É UMA LISTA GLOBAL QUE NUNCA ZERA SOZINHA
+// LISTA GLOBAL - NÃO É ZERADA AO MUDAR DE ABA
+let filaImpressao = [];
 let setorAtual = 'ENF';
 let abaEditorAtual = 'ENF';
 
-// Inicialização
-window.addEventListener('pywebviewready', carregarDados);
+// --- INICIALIZAÇÃO ---
+window.addEventListener('pywebviewready', () => {
+    carregarDados();
+    carregarTema(); // Recupera o tema (Dark/Light)
+});
 setTimeout(() => { if (dadosEnf.length === 0) carregarDados(); }, 1500);
+
+// --- LÓGICA DE TEMA ---
+function carregarTema() {
+    const temaSalvo = localStorage.getItem('temaNutriBem') || 'dark';
+    aplicarTema(temaSalvo);
+}
+
+function alternarTema() {
+    const html = document.documentElement;
+    const temaAtual = html.getAttribute('data-theme') || 'dark';
+    const novoTema = temaAtual === 'dark' ? 'light' : 'dark';
+    aplicarTema(novoTema);
+    localStorage.setItem('temaNutriBem', novoTema);
+}
+
+function aplicarTema(tema) {
+    document.documentElement.setAttribute('data-theme', tema);
+    const icon = document.getElementById('iconTema');
+    if (icon) icon.textContent = tema === 'dark' ? 'dark_mode' : 'light_mode';
+}
+
+// --- FUNÇÕES DE DADOS ---
 
 async function recarregarDadosComFeedback() {
     await carregarDados();
@@ -18,7 +44,7 @@ function escaparTexto(texto) {
     return String(texto).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-// --- NAVEGAÇÃO ---
+// --- NAVEGAÇÃO E FILA MISTA ---
 function mudarAba(aba) {
     document.querySelectorAll('.tab-content').forEach(d => d.style.display = 'none');
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -46,13 +72,13 @@ function mudarAba(aba) {
 
         document.getElementById('painelBusca').style.display = 'block';
 
-        // Renderiza a lista do setor selecionado
+        // 1. Renderiza a lista de pacientes do setor escolhido
         renderizarLista(getDadosAtuais());
 
-        // IMPORTANTE: NÃO LIMPAMOS MAIS A FILA AQUI! 
-        // filaImpressao = []; <--- ISSO FOI REMOVIDO PARA PERMITIR MISTURAR
-
-        atualizarFila(); // Apenas redesenha a fila que já existe
+        // 2. CORREÇÃO DA FILA MISTA:
+        // A linha "filaImpressao = []" FOI REMOVIDA DAQUI.
+        // Apenas atualizamos o visual para mostrar quem já está na fila.
+        atualizarFila();
     }
 }
 
@@ -62,7 +88,6 @@ function getDadosAtuais() {
     return dadosUpa;
 }
 
-// --- CARREGAMENTO DE DADOS ---
 async function carregarDados() {
     if (window.pywebview && window.pywebview.api) {
         try {
@@ -78,11 +103,11 @@ async function carregarDados() {
     }
 }
 
-// --- LISTA LATERAL (BUSCA) ---
+// --- LISTA DE PACIENTES (BUSCA) ---
 function renderizarLista(lista) {
     const div = document.getElementById("listaPacientes");
     div.innerHTML = "";
-    if (!lista || lista.length === 0) { div.innerHTML = "<p style='text-align:center;padding:20px;color:#888'>Vazio.</p>"; return; }
+    if (!lista || lista.length === 0) { div.innerHTML = "<p style='text-align:center;padding:20px;color:var(--text-muted)'>Vazio.</p>"; return; }
 
     lista.forEach(p => {
         let item = document.createElement("div");
@@ -197,13 +222,21 @@ async function salvarExcel() {
     }
 }
 
-// --- FUNÇÕES DE FILA (ATUALIZADAS E GLOBAIS) ---
+// --- FUNÇÕES DE FILA (ATUALIZADAS PARA NÃO DUPLICAR) ---
 
 function adicionarFila(p) {
-    // Evita duplicatas exatas na fila (Opcional, mas recomendado)
-    // Se quiser permitir duplicatas, remova as 3 linhas abaixo
-    let duplicado = filaImpressao.some(item => item['LEITO'] === p['LEITO'] && item['NOME DO PACIENTE'] === p['NOME DO PACIENTE']);
-    if (duplicado) return;
+    // Evita duplicar se o paciente JÁ estiver na fila
+    // Comparamos Leito e Nome para ter certeza
+    let jaExiste = filaImpressao.some(item =>
+        String(item['LEITO']) === String(p['LEITO']) &&
+        String(item['NOME DO PACIENTE']) === String(p['NOME DO PACIENTE'])
+    );
+
+    if (jaExiste) {
+        // Opcional: Avisar ou fazer uma animação
+        // console.log("Paciente já está na fila");
+        return;
+    }
 
     filaImpressao.push(p);
     atualizarFila();
@@ -216,12 +249,11 @@ function limparFila() {
 
 function adicionarTodos() {
     let lista = getDadosAtuais();
-    // Adiciona apenas quem ainda não está na fila para não duplicar
+    // Adiciona um por um usando a função segura que evita duplicatas
     lista.forEach(p => adicionarFila(p));
     atualizarFila();
 }
 
-// Nova função para remover 1 item específico
 function removerDaFila(index) {
     filaImpressao.splice(index, 1);
     atualizarFila();
@@ -233,17 +265,15 @@ function atualizarFila() {
     ul.innerHTML = "";
 
     if (filaImpressao.length === 0) {
-        ul.innerHTML = '<li class="empty-msg" style="justify-content: center; color: #777;">Fila vazia.</li>';
+        ul.innerHTML = '<li class="empty-msg" style="justify-content: center; color: var(--text-muted);">Fila vazia.</li>';
     } else {
         filaImpressao.forEach((p, i) => {
             let nome = p['NOME DO PACIENTE'] || 'Sem Nome';
             let leito = p['LEITO'] || '?';
-
-            // Item da lista com botão "X" para remover
             ul.innerHTML += `
                 <li>
                     <span>✅ <b>${leito}</b> - ${nome}</span>
-                    <button class="btn-remove-queue" onclick="removerDaFila(${i})" title="Remover este paciente">
+                    <button class="btn-remove-queue" onclick="removerDaFila(${i})" title="Remover">
                         <span class="material-icons">close</span>
                     </button>
                 </li>

@@ -191,7 +191,32 @@ class Api:
 
     # --- RELATÓRIOS ---
     def gerar_relatorio_enf(self, tipo):
-        return self._gerar_relatorio_generico(df_pacientes_enf, df_completo_enf, tipo, "enf", "PACIENTES OCUPADOS", "MAPA GERAL (AUDITORIA)")
+        df = df_pacientes_enf if tipo == 'simples' else df_completo_enf
+        
+        if df is None: return "Dados não carregados."
+        
+        # 1. ORDENAR (CRUCIAL PARA MESCLAGEM FUNCIONAR)
+        # Se tiver Apt 2, depois Apt 5, depois Apt 2 de novo, a mesclagem quebra.
+        if not df.empty and 'ENFERMARIA' in df.columns:
+            try:
+                # Ordena por Enfermaria e depois por Leito
+                df = df.sort_values(by=['ENFERMARIA', 'LEITO'])
+            except: pass
+
+        nome = f"relatorio_enf_{tipo}.pdf"
+        titulo = "PACIENTES OCUPADOS" if tipo == 'simples' else "MAPA GERAL (AUDITORIA)"
+        
+        caminho = self.pedir_caminho_salvar(nome)
+        if not caminho: return "Cancelado."
+
+        try:
+            # Mescla ativada para ambos
+            gerar_tabela_padrao(df, caminho, titulo, mesclar=True)
+            return "Relatório Salvo com Sucesso!"
+        except PermissionError: return "ERRO: O arquivo PDF está aberto. Feche-o."
+        except Exception as e: 
+            self.log_erro(traceback.format_exc())
+            return f"Erro ao gerar: {e}"
 
     def gerar_relatorio_uti(self, tipo):
         return self._gerar_relatorio_generico(df_pacientes_uti, df_completo_uti, tipo, "uti", "NUTRIÇÃO - CORRIDA DE LEITO - UTI HRMSS", "NUTRIÇÃO - CORRIDA DE LEITO - UTI HRMSS")
@@ -210,106 +235,68 @@ class Api:
         if not caminho: return "Cancelado."
 
         try:
-            if prefixo == 'enf':
-                gerar_tabela_padrao(df, caminho, titulo, mesclar=(tipo=='geral'))
-            else:
-                gerar_tabela_especifica(df, caminho, titulo)
+            gerar_tabela_especifica(df, caminho, titulo)
             return "Relatório Salvo com Sucesso!"
         except PermissionError: return "ERRO: O arquivo PDF está aberto. Feche-o."
         except Exception as e: 
             self.log_erro(traceback.format_exc())
             return f"Erro ao gerar: {e}"
 
-# --- LIMPEZA DE TEXTO (Remove quebras de linha que estragam o layout) ---
+# --- LIMPEZA ---
 def limpar_valor(val):
     if val is None: return ""
     s = str(val).strip()
     if s.lower() in ['nan', 'nat', 'none']: return ""
-    # Substitui Enter por Espaço para não encavalar
     return s.replace('\n', ' ').replace('\r', '')
 
-# --- DESIGN DA ETIQUETA CORRIGIDO ---
+# --- DESIGN ETIQUETA ---
 def desenhar_etiqueta_individual(c, x, y, w, h, p):
     TAMANHO_FONTE = 9
     c.setStrokeColorRGB(0, 0, 0); c.setLineWidth(1); c.rect(x, y, w, h)
-    
-    # Cabeçalho
-    cor_header = HexColor('#355a31')
-    c.setFillColor(cor_header); c.setStrokeColor(cor_header)
+    cor_header = HexColor('#355a31'); c.setFillColor(cor_header); c.setStrokeColor(cor_header)
     c.roundRect(x + 1*mm, y + h - 15*mm - 1*mm, w - 2*mm, 15*mm, 3*mm, fill=1, stroke=0)
-    
-    # Logo
     try:
         if os.path.exists("logo.png"): 
-            c.drawImage("logo.png", x + 3*mm, y + h - 13*mm, width=10*mm, height=10*mm, mask='auto', preserveAspectRatio=True)
+            c.drawImage("logo.png", x + 3*mm, y + h - 13*mm, width=12*mm, height=12*mm, mask='auto', preserveAspectRatio=True)
     except: pass
-
-    # Texto Cabeçalho
     c.setFillColor(colors.white); c.setFont("Helvetica-Bold", 11)
     c.drawCentredString(x + w/2 + 5*mm, y + h - 6*mm, "SILVA E TEIXEIRA")
     c.setFont("Helvetica-Bold", 7)
     c.drawCentredString(x + w/2 + 5*mm, y + h - 9.5*mm, "IDENTIFICAÇÃO DE DIETAS")
     c.drawCentredString(x + w/2 + 5*mm, y + h - 12.5*mm, "PARA PACIENTES")
-    
     c.setFillColor(colors.black)
     margem_esq = x + 3*mm
-    
-    # Dados Limpos
     nome = limpar_valor(p.get('NOME DO PACIENTE', ''))
     enf = limpar_valor(p.get('ENFERMARIA', ''))
     leito = limpar_valor(p.get('LEITO', ''))
     dieta = limpar_valor(p.get('DIETA', ''))
-    obs = limpar_valor(p.get('OBSERVAÇÕES', '')) 
+    obs = limpar_valor(p.get('OBSERVAÇÕES', ''))
     if len(obs) > 120: obs = obs[:117] + "..."
-
-    # === DESENHO LINHA POR LINHA COM ESPAÇAMENTO CONTROLADO ===
-    cursor_y = y + h - 20*mm 
     
-    # Linha 1: Paciente
+    cursor_y = y + h - 20*mm 
     c.setFont("Helvetica-Bold", TAMANHO_FONTE); c.drawString(margem_esq, cursor_y, "PACIENTE:")
     c.setFont("Helvetica", TAMANHO_FONTE); c.drawString(margem_esq + 19*mm, cursor_y, nome[:40]) 
     cursor_y -= 5*mm 
-    
-    # Linha 2: Enf | Leito
     c.setFont("Helvetica-Bold", TAMANHO_FONTE); c.drawString(margem_esq, cursor_y, "ENF:")
     c.setFont("Helvetica", TAMANHO_FONTE); c.drawString(margem_esq + 9*mm, cursor_y, enf[:15])
-    
     c.setFont("Helvetica-Bold", TAMANHO_FONTE); c.drawString(margem_esq + 45*mm, cursor_y, "LEITO:")
     c.setFont("Helvetica", TAMANHO_FONTE); c.drawString(margem_esq + 57*mm, cursor_y, leito)
     cursor_y -= 5*mm 
-    
-    # Linha 3: Dieta (Loop corrigido para não sobrepor)
     c.setFont("Helvetica-Bold", TAMANHO_FONTE); c.drawString(margem_esq, cursor_y, "TIPO DE DIETA:")
-    cursor_y -= 4*mm # Pula linha para o conteúdo
-    
-    c.setFont("Helvetica", TAMANHO_FONTE)
-    linhas_dieta = simpleSplit(dieta, "Helvetica", TAMANHO_FONTE, w - 6*mm)
-    for linha in linhas_dieta:
-        c.drawString(margem_esq, cursor_y, linha)
-        cursor_y -= 4*mm # Desce a cada linha impressa
-    
-    cursor_y -= 1*mm # Espaço extra antes da Obs
-    
-    # Linha 4: Obs + Data
-    # Imprime DATA primeiro (lado direito fixo)
-    c.setFont("Helvetica-Bold", TAMANHO_FONTE)
-    c.drawRightString(x + w - 3*mm, cursor_y, f"DATA: {datetime.now().strftime('%d/%m/%Y')}")
-    
-    # Imprime Título OBS
-    c.drawString(margem_esq, cursor_y, "OBS:")
-    
-    # Imprime conteúdo OBS (Lado esquerdo, abaixo do título ou ao lado)
-    # Vamos colocar o texto da OBS começando um pouco abaixo para não bater na data se for longo
     cursor_y -= 4*mm 
     c.setFont("Helvetica", TAMANHO_FONTE)
-    
-    linhas_obs = simpleSplit(obs, "Helvetica", TAMANHO_FONTE, w - 6*mm)
-    for linha in linhas_obs:
-        if cursor_y < y + 2*mm: break # Para se chegar no fim da etiqueta
-        c.drawString(margem_esq, cursor_y, linha)
-        cursor_y -= 4*mm # Desce linha por linha
+    for linha in simpleSplit(dieta, "Helvetica", TAMANHO_FONTE, w - 6*mm): c.drawString(margem_esq, cursor_y, linha); cursor_y -= 4*mm 
+    cursor_y -= 1*mm 
+    c.setFont("Helvetica-Bold", TAMANHO_FONTE)
+    c.drawRightString(x + w - 3*mm, cursor_y, f"DATA: {datetime.now().strftime('%d/%m/%Y')}")
+    c.setFont("Helvetica-Bold", TAMANHO_FONTE); c.drawString(margem_esq, cursor_y, "OBS:")
+    cursor_y -= 4*mm 
+    c.setFont("Helvetica", TAMANHO_FONTE)
+    for linha in simpleSplit(obs, "Helvetica", TAMANHO_FONTE, w - 6*mm): 
+        if cursor_y < y + 2*mm: break 
+        c.drawString(margem_esq, cursor_y, linha); cursor_y -= 4*mm
 
-# --- TABELAS ---
+# --- TABELA PADRÃO (COM LÓGICA DE MESCLAGEM CORRIGIDA) ---
 def gerar_tabela_padrao(df, nome, tit, mesclar=False):
     doc = SimpleDocTemplate(nome, pagesize=landscape(A4), rightMargin=20, leftMargin=20, topMargin=20, bottomMargin=20)
     elements = []
@@ -320,8 +307,14 @@ def gerar_tabela_padrao(df, nome, tit, mesclar=False):
     estilo_sub = ParagraphStyle('SubTitle', parent=styles['Normal'], alignment=TA_CENTER, fontSize=10)
     elements.append(Paragraph(f"<b>{tit}</b> - Emitido em: {datetime.now().strftime('%d/%m/%Y %H:%M')}", estilo_sub))
     elements.append(Spacer(1, 15))
+    
+    # Prepara Dados
     estilo_celula = ParagraphStyle('CellStyle', parent=styles['Normal'], fontSize=9, leading=11)
     data = [['ENFERMARIA', 'LEITO', 'NOME DO PACIENTE', 'DIETA', 'OBSERVAÇÕES']]
+    
+    # Reseta o index para garantir iteração linear 0, 1, 2...
+    df = df.reset_index(drop=True)
+
     for index, row in df.iterrows():
         nome = limpar_valor(row['NOME DO PACIENTE'])
         enf = limpar_valor(row['ENFERMARIA'])
@@ -329,27 +322,59 @@ def gerar_tabela_padrao(df, nome, tit, mesclar=False):
         dieta = limpar_valor(row['DIETA'])
         obs = limpar_valor(row['OBSERVAÇÕES'])
         data.append([Paragraph(enf, estilo_celula), leito, Paragraph(nome, estilo_celula), Paragraph(dieta, estilo_celula), Paragraph(obs, estilo_celula)])
+    
     t = Table(data, colWidths=[110, 50, 250, 160, 200], repeatRows=1)
-    estilo = [('BACKGROUND',(0,0),(-1,0),colors.Color(0.2,0.6,0.3)), ('TEXTCOLOR',(0,0),(-1,0),colors.white), ('GRID',(0,0),(-1,-1),0.5,colors.grey), ('ROWBACKGROUNDS',(0,1),(-1,-1),[colors.whitesmoke,colors.white])]
-    if mesclar:
-        g=None; ini=1; dfr=df.reset_index(drop=True)
-        for i in range(len(dfr)):
-            atual=dfr.iloc[i]['ENFERMARIA']
-            if atual!=g:
-                if g: estilo.append(('SPAN',(0,ini),(0,i))); estilo.append(('VALIGN',(0,ini),(0,i),'MIDDLE'))
-                g=atual; ini=i+1
-        estilo.append(('SPAN',(0,ini),(0,len(dfr)))); estilo.append(('VALIGN',(0,ini),(0,len(dfr)),'MIDDLE'))
-    t.setStyle(TableStyle(estilo)); elements.append(t); elements.append(Spacer(1,40))
+    
+    # Estilos Básicos
+    estilo = [
+        ('BACKGROUND',(0,0),(-1,0),colors.Color(0.2,0.6,0.3)), 
+        ('TEXTCOLOR',(0,0),(-1,0),colors.white), 
+        ('GRID',(0,0),(-1,-1),0.5,colors.grey), 
+        ('ROWBACKGROUNDS',(0,1),(-1,-1),[colors.whitesmoke,colors.white])
+    ]
+    
+    # --- ALGORITMO DE MESCLAGEM SEGURO ---
+    if mesclar and len(df) > 0:
+        # O cabeçalho é a linha 0 do PDF. Os dados começam na linha 1.
+        offset = 1 
+        start_row = offset
+        current_group = df.iloc[0]['ENFERMARIA']
+        
+        # Itera da segunda linha de dados até o fim
+        for i in range(1, len(df)):
+            val = df.iloc[i]['ENFERMARIA']
+            
+            # Se mudou o grupo
+            if val != current_group:
+                end_row = (i - 1) + offset
+                # Se o grupo tinha mais de 1 linha, mescla
+                if end_row > start_row:
+                    estilo.append(('SPAN', (0, start_row), (0, end_row)))
+                    estilo.append(('VALIGN', (0, start_row), (0, end_row), 'MIDDLE'))
+                
+                # Reseta para o novo grupo
+                current_group = val
+                start_row = i + offset
+        
+        # Processa o último grupo (pós-loop)
+        end_row = (len(df) - 1) + offset
+        if end_row > start_row:
+            estilo.append(('SPAN', (0, start_row), (0, end_row)))
+            estilo.append(('VALIGN', (0, start_row), (0, end_row), 'MIDDLE'))
+            
+    t.setStyle(TableStyle(estilo))
+    elements.append(t); elements.append(Spacer(1,40))
     elements.append(Paragraph("_"*60, ParagraphStyle('A', parent=styles['Normal'], alignment=TA_CENTER))); elements.append(Paragraph("<b>NUTRICIONISTA RESPONSÁVEL</b>", ParagraphStyle('A', parent=styles['Normal'], alignment=TA_CENTER)))
     doc.build(elements)
     if os.path.exists(nome): os.startfile(nome)
 
+# --- TABELA ESPECÍFICA (SEM MESCLAGEM) ---
 def gerar_tabela_especifica(df, nome, tit):
     doc = SimpleDocTemplate(nome, pagesize=landscape(A4), rightMargin=20, leftMargin=20, topMargin=20, bottomMargin=20)
     elements = []
     styles = getSampleStyleSheet()
     try:
-        if os.path.exists("logo.png"): elements.append(Image("logo.png", width=15*mm, height=15*mm, hAlign='CENTER')); elements.append(Spacer(1, 5))
+        if os.path.exists("logo.png"): elements.append(Image("logo.png", width=35*mm, height=35*mm, hAlign='CENTER')); elements.append(Spacer(1, 5))
     except: pass
     elements.append(Paragraph(f"DATA: {datetime.now().strftime('%d/%m/%Y')}", ParagraphStyle('DT', parent=styles['Normal'], alignment=TA_CENTER, fontSize=12)))
     elements.append(Paragraph(tit, ParagraphStyle('T', parent=styles['Title'], alignment=TA_CENTER, textColor=colors.darkblue)))
