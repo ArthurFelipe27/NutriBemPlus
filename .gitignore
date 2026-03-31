@@ -1,0 +1,21 @@
+# Cache do Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ambientes Virtuais (Caso venha a utilizar)
+venv/
+.venv/
+env/
+
+# Variáveis de Ambiente
+.env
+
+# Arquivos Gerados pelo NutriBem+ (Dados Sensíveis e Logs)
+pacientes.xlsx
+.backups/
+log_erros.txt
+
+# Relatórios e Etiquetas Exportadas
+*.pdf
+.backups

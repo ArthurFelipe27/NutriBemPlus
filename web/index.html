@@ -1,25 +1,592 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-pt" data-theme="dark">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NutriBem +</title>
-    <link rel="stylesheet" href="style.css">
+    <title>NutriBem + | Gestão Hospitalar</title>
+
+    <!-- Ícones Material Design -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- Toastify CSS (Para notificações elegantes) -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+    <!-- Chart.js (Para visualização de dados) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* --- VARIÁVEIS DE CORES (TEMA PADRÃO / DARK) --- */
+        :root {
+            --bg-color: #121212;
+            --sidebar-color: #1e1e1e;
+            --card-color: #252526;
+            --text-color: #e0e0e0;
+            --text-muted: #888888;
+            --border-color: #333333;
+            --input-bg: #2d2d30;
+            --hover-color: #2a2d35;
+
+            --accent-color: #3b82f6;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --purple-color: #8b5cf6;
+
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius-md: 12px;
+            --radius-sm: 8px;
+        }
+
+        /* --- TEMA LIGHT --- */
+        [data-theme="light"] {
+            --bg-color: #f3f4f6;
+            --sidebar-color: #ffffff;
+            --card-color: #ffffff;
+            --text-color: #1f2937;
+            --text-muted: #6b7280;
+            --border-color: #e5e7eb;
+            --input-bg: #f9fafb;
+            --hover-color: #f3f4f6;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* --- RESET GERAL --- */
+        html,
+        body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow: hidden;
+            user-select: none;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+
+        /* --- BARRA LATERAL (SIDEBAR) --- */
+        .sidebar {
+            width: 320px;
+            min-width: 320px;
+            background-color: var(--sidebar-color);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            box-shadow: var(--shadow-sm);
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .sidebar-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--accent-color), var(--purple-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-icon:hover {
+            background-color: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+            transform: translateY(-2px);
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-muted);
+            padding: 12px 16px;
+            text-align: left;
+            cursor: pointer;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover {
+            background: var(--hover-color);
+            color: var(--text-color);
+        }
+
+        .nav-btn.active {
+            background: var(--accent-color);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            border-color: var(--accent-color);
+        }
+
+        hr {
+            border: 0;
+            height: 1px;
+            background: var(--border-color);
+            margin: 20px 0;
+        }
+
+        #painelBusca {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: var(--input-bg);
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            margin-bottom: 16px;
+            transition: border-color 0.2s;
+        }
+
+        .search-box:focus-within {
+            border-color: var(--accent-color);
+        }
+
+        .search-box input {
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+            width: 100%;
+            margin-left: 10px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .patient-list {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .patient-item {
+            background: var(--card-color);
+            padding: 14px;
+            margin-bottom: 10px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--border-color);
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .patient-item:hover {
+            transform: translateX(4px);
+            border-left-color: var(--accent-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .patient-item.alerta-critico {
+            border-left-color: var(--danger-color);
+        }
+
+        .patient-item.alerta-critico .icon-alert {
+            color: var(--danger-color);
+            position: absolute;
+            right: 10px;
+            top: 14px;
+            font-size: 18px;
+        }
+
+        .patient-item h4 {
+            margin: 0;
+            font-size: 14px;
+            color: var(--text-color);
+            font-weight: 600;
+            padding-right: 20px;
+        }
+
+        .patient-item p {
+            margin: 6px 0 0;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* --- CONTEÚDO PRINCIPAL --- */
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            background-color: var(--bg-color);
+            height: 100vh;
+            box-sizing: border-box;
+            transition: background-color 0.3s;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 300;
+            letter-spacing: -0.5px;
+        }
+
+        header p {
+            margin: 8px 0 0;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .plus {
+            color: var(--accent-color);
+            font-weight: 700;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            align-items: start;
+        }
+
+        .card {
+            background-color: var(--card-color);
+            padding: 24px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-md);
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s;
+        }
+
+        .card h3 {
+            margin: 0 0 20px 0;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .card h3 .material-icons {
+            color: var(--accent-color);
+        }
+
+        .queue-area {
+            background: var(--input-bg);
+            height: 250px;
+            border-radius: var(--radius-sm);
+            overflow-y: auto;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 16px;
+        }
+
+        #listaFila {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #listaFila li {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 6px;
+            transition: background 0.2s;
+            color: var(--text-color);
+        }
+
+        #listaFila li:hover {
+            background-color: var(--hover-color);
+        }
+
+        .btn-remove-queue {
+            background: transparent;
+            border: none;
+            color: var(--danger-color);
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .btn-remove-queue:hover {
+            background-color: rgba(239, 68, 68, 0.15);
+        }
+
+        .queue-status {
+            text-align: right;
+            font-size: 13px;
+            color: var(--accent-color);
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 280px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .actions.vertical {
+            flex-direction: column;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            flex: 1;
+        }
+
+        .btn:hover {
+            filter: brightness(110%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background-color: var(--accent-color);
+        }
+
+        .btn-secondary {
+            background-color: var(--text-muted);
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+        }
+
+        .btn-orange {
+            background-color: var(--warning-color);
+            color: #fff;
+        }
+
+        .btn-purple {
+            background-color: var(--purple-color);
+        }
+
+        /* Editor de Planilha */
+        .excel-container {
+            background: var(--card-color);
+            padding: 1px;
+            border-radius: var(--radius-md);
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            max-height: 70vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-md);
+        }
+
+        #tabelaEditor {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+
+        #tabelaEditor th {
+            background: var(--sidebar-color);
+            color: var(--text-muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            padding: 14px 12px;
+            text-align: left;
+            border-bottom: 2px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        #tabelaEditor td {
+            border-bottom: 1px solid var(--border-color);
+            padding: 0;
+            background-color: var(--input-bg);
+        }
+
+        #tabelaEditor input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            color: var(--text-color);
+            padding: 14px 12px;
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            box-sizing: border-box;
+            transition: background-color 0.2s;
+        }
+
+        #tabelaEditor tr:hover input {
+            background-color: var(--hover-color);
+        }
+
+        #tabelaEditor input:focus {
+            background-color: var(--card-color);
+            box-shadow: inset 2px 0 0 0 var(--accent-color);
+        }
+
+        .btn-remove {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+
+        .btn-remove:hover {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+        }
+
+        .loading {
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 20px;
+            font-style: italic;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+    </style>
 </head>
 
 <body>
+    <!-- DATALIST PARA PADRONIZAÇÃO NA DIGITAÇÃO -->
+    <datalist id="lista-dietas-padrao">
+        <option value="Livre / Normal">
+        <option value="Pastosa">
+        <option value="Pastosa Homogênea">
+        <option value="Líquida">
+        <option value="Líquida Restrita">
+        <option value="Branda">
+        <option value="Dieta Enteral">
+        <option value="Hipossódica">
+        <option value="Diabética">
+        <option value="Hipercalórica">
+        <option value="Hiperproteica">
+        <option value="Zero / Jejum">
+    </datalist>
+
     <div class="app-container">
+        <!-- BARRA LATERAL -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h2>Menu</h2>
+                <h2>Menu Principal</h2>
                 <div class="header-actions">
-                    <button class="btn-icon" onclick="alternarTema()" title="Alternar Tema (Claro/Escuro)">
-                        <span class="material-icons" id="iconTema">dark_mode</span>
+                    <button class="btn-icon" onclick="alternarTema()" title="Alternar Tema">
+                        <span class="material-icons" id="iconTema">light_mode</span>
                     </button>
-                    <button class="btn-icon btn-sync" onclick="recarregarDadosComFeedback()"
-                        title="Recarregar Planilha">
+                    <button class="btn-icon" onclick="recarregarDadosComFeedback()" title="Sincronizar Planilha">
                         <span class="material-icons">sync</span>
                     </button>
                 </div>
@@ -36,77 +603,529 @@
                     <span class="material-icons">local_shipping</span> UPA (Urgência)
                 </button>
                 <button class="nav-btn" onclick="mudarAba('editor')">
-                    <span class="material-icons">edit_note</span> Editor
+                    <span class="material-icons">edit_note</span> Gestor de Dados
                 </button>
             </nav>
 
-            <hr style="border-color: var(--border-color); margin: 20px 0;">
+            <hr>
 
             <div id="painelBusca">
                 <div class="search-box">
                     <span class="material-icons" style="color:var(--text-muted)">search</span>
-                    <input type="text" id="inputBusca" placeholder="Buscar..." onkeyup="filtrarLista()">
+                    <input type="text" id="inputBusca" placeholder="Pesquisar paciente ou leito..."
+                        onkeyup="filtrarLista()">
                 </div>
                 <div id="listaPacientes" class="patient-list">
-                    <p class="loading">Carregando...</p>
+                    <p class="loading">A carregar dados...</p>
                 </div>
             </div>
         </aside>
 
+        <!-- ÁREA PRINCIPAL -->
         <main class="main-content">
+            <!-- ABA DASHBOARD -->
             <section id="tab-dashboard" class="tab-content active">
                 <header>
-                    <h1>Sistema NutriBem - <span id="tituloSetor" class="plus">Enfermarias</span></h1>
-                    <p>Gestão de Dietas e Etiquetas</p>
+                    <div>
+                        <h1>Dashboard Analítico - <span id="tituloSetor" class="plus">Enfermarias</span></h1>
+                        <p>Gestão Inteligente de Dietas e Impressão de Etiquetas</p>
+                    </div>
                 </header>
 
                 <div class="dashboard-grid">
+                    <!-- Fila de Impressão -->
                     <div class="card">
-                        <h3><span class="material-icons">style</span> Fila de Impressão</h3>
+                        <h3><span class="material-icons">print</span> Fila de Impressão</h3>
                         <div class="queue-area">
                             <ul id="listaFila">
                                 <li class="empty-msg" style="text-align:center; color:var(--text-muted); padding:20px;">
                                     Fila vazia.</li>
                             </ul>
                         </div>
-                        <div class="queue-status" id="contadorFila">0 etiquetas</div>
+                        <div class="queue-status" id="contadorFila">0 etiquetas prontas</div>
                         <div class="actions">
-                            <button class="btn btn-secondary" onclick="limparFila()">Limpar</button>
-                            <button class="btn btn-primary" onclick="adicionarTodos()">Todos</button>
-                            <button class="btn btn-success" onclick="imprimirFila()">IMPRIMIR</button>
+                            <button class="btn btn-secondary" onclick="limparFila()"><span
+                                    class="material-icons">clear_all</span> Limpar</button>
+                            <button class="btn btn-primary" onclick="adicionarTodos()"><span
+                                    class="material-icons">playlist_add</span> Todos</button>
+                            <button class="btn btn-success" onclick="imprimirFila()"><span
+                                    class="material-icons">print</span> IMPRIMIR</button>
                         </div>
                     </div>
+
+                    <!-- Gráfico Analítico Otimizado -->
                     <div class="card">
-                        <h3><span class="material-icons">description</span> Relatórios</h3>
-                        <div class="actions vertical">
-                            <button class="btn btn-orange" onclick="gerarRelatorioSimples()">Relatório Ocupados</button>
-                            <button class="btn btn-purple" onclick="gerarMapaGeral()">Mapa Geral</button>
+                        <h3><span class="material-icons">pie_chart</span> Distribuição de Dietas (Categorizada)</h3>
+                        <div class="chart-container">
+                            <canvas id="graficoDietas"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Relatórios -->
+                    <div class="card">
+                        <h3><span class="material-icons">description</span> Exportar Relatórios</h3>
+                        <div class="actions vertical" style="margin-top: 10px;">
+                            <button class="btn btn-orange" onclick="gerarRelatorioSimples()">
+                                <span class="material-icons">list_alt</span> Relatório de Ocupados
+                            </button>
+                            <button class="btn btn-purple" onclick="gerarMapaGeral()">
+                                <span class="material-icons">map</span> Mapa Geral (Auditoria)
+                            </button>
                         </div>
                     </div>
                 </div>
             </section>
 
+            <!-- ABA EDITOR DE PLANILHA -->
             <section id="tab-editor" class="tab-content" style="display: none;">
-                <header style="display: flex; justify-content: space-between; align-items: center;">
-                    <h1>Editor de Planilha</h1>
-                    <div id="editorControls" style="display:flex; gap:10px;"></div>
-                    <button class="btn btn-success" onclick="salvarExcel()">
-                        <span class="material-icons">save</span> SALVAR TUDO
-                    </button>
+                <header>
+                    <div>
+                        <h1>Gestor de Dados</h1>
+                        <p>Edição em tempo real da base de dados do Excel</p>
+                    </div>
+                    <div style="display:flex; gap:15px; align-items: center;">
+                        <div id="editorControls" style="display:flex; gap:10px;"></div>
+                        <button class="btn btn-success" onclick="salvarExcel()">
+                            <span class="material-icons">save</span> GUARDAR ALTERAÇÕES
+                        </button>
+                    </div>
                 </header>
                 <div class="excel-container">
                     <table id="tabelaEditor">
                         <thead></thead>
                         <tbody id="corpoTabelaEditor"></tbody>
                     </table>
-                    <button class="btn btn-secondary" onclick="adicionarLinhaVazia()" style="margin-top: 10px;">
-                        + Adicionar Linha
+                </div>
+                <div style="margin-top: 16px;">
+                    <button class="btn btn-primary" onclick="adicionarLinhaVazia()"
+                        style="width: auto; padding: 10px 20px;">
+                        <span class="material-icons">add</span> Adicionar Novo Paciente
                     </button>
                 </div>
             </section>
         </main>
     </div>
-    <script src="script.js"></script>
+
+    <!-- Importar JS do Toastify -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+    <script>
+        // --- VARIÁVEIS DE ESTADO ---
+        let dadosEnf = [], dadosUti = [], dadosUpa = [];
+        let editorEnf = [], editorUti = [], editorUpa = [];
+        let filaImpressao = [];
+        let setorAtual = 'ENF';
+        let abaEditorAtual = 'ENF';
+        let instanciaGrafico = null;
+
+        // --- SISTEMA DE NOTIFICAÇÕES (TOASTIFY) ---
+        function mostrarNotificacao(mensagem, tipo = 'info') {
+            let cores = {
+                'success': "linear-gradient(to right, #10b981, #059669)",
+                'error': "linear-gradient(to right, #ef4444, #dc2626)",
+                'warning': "linear-gradient(to right, #f59e0b, #d97706)",
+                'info': "linear-gradient(to right, #3b82f6, #2563eb)"
+            };
+            Toastify({
+                text: mensagem, duration: 3000, close: true, gravity: "top", position: "right",
+                style: { background: cores[tipo] || cores['info'], borderRadius: "8px", fontWeight: "500" }
+            }).showToast();
+        }
+
+        window.addEventListener('pywebviewready', () => { carregarDados(); carregarTema(); });
+
+        // --- GESTÃO DE TEMA ---
+        function carregarTema() {
+            const temaSalvo = localStorage.getItem('temaNutriBem') || 'dark';
+            aplicarTema(temaSalvo);
+        }
+
+        function alternarTema() {
+            const html = document.documentElement;
+            const temaAtual = html.getAttribute('data-theme') || 'dark';
+            const novoTema = temaAtual === 'dark' ? 'light' : 'dark';
+            aplicarTema(novoTema);
+            localStorage.setItem('temaNutriBem', novoTema);
+        }
+
+        function aplicarTema(tema) {
+            document.documentElement.setAttribute('data-theme', tema);
+            const icon = document.getElementById('iconTema');
+            if (icon) icon.textContent = tema === 'dark' ? 'light_mode' : 'dark_mode';
+            if (instanciaGrafico) atualizarGrafico(getDadosAtuais());
+        }
+
+        async function recarregarDadosComFeedback() {
+            await carregarDados();
+            mostrarNotificacao("Base de dados sincronizada com o Excel!", "success");
+        }
+
+        function escaparTexto(texto) {
+            if (texto === null || texto === undefined) return "";
+            return String(texto).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        async function carregarDados() {
+            if (window.pywebview && window.pywebview.api) {
+                try {
+                    let res = await pywebview.api.carregar_dados_excel();
+                    if (res.sucesso) {
+                        dadosEnf = res.dados_enf; dadosUti = res.dados_uti; dadosUpa = res.dados_upa;
+                        editorEnf = res.editor_enf; editorUti = res.editor_uti; editorUpa = res.editor_upa;
+                        if (document.getElementById('tab-editor').style.display === 'block') renderizarEditor();
+                        else { renderizarLista(getDadosAtuais()); atualizarGrafico(getDadosAtuais()); }
+                    } else mostrarNotificacao(res.erro, "error");
+                } catch (e) { console.error(e); }
+            }
+        }
+
+        function mudarAba(aba) {
+            document.querySelectorAll('.tab-content').forEach(d => d.style.display = 'none');
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+            let btnIndex = 0;
+            if (aba === 'uti') btnIndex = 1;
+            if (aba === 'upa') btnIndex = 2;
+            if (aba === 'editor') btnIndex = 3;
+            document.querySelectorAll('.nav-btn')[btnIndex].classList.add('active');
+
+            if (aba === 'editor') {
+                document.getElementById('tab-editor').style.display = 'block';
+                document.getElementById('painelBusca').style.display = 'none';
+                abaEditorAtual = 'ENF';
+                renderizarEditor();
+            } else {
+                if (aba === 'enf') setorAtual = 'ENF';
+                else if (aba === 'uti') setorAtual = 'UTI';
+                else setorAtual = 'UPA';
+
+                document.getElementById('tab-dashboard').style.display = 'block';
+                document.getElementById('painelBusca').style.display = 'flex';
+
+                let titulos = { 'ENF': 'Enfermarias', 'UTI': 'UTI - HRMSS', 'UPA': 'UPA - Urgência' };
+                document.getElementById('tituloSetor').innerText = titulos[setorAtual];
+
+                let dadosAtuais = getDadosAtuais();
+                renderizarLista(dadosAtuais);
+                atualizarGrafico(dadosAtuais);
+                atualizarFila();
+            }
+        }
+
+        function getDadosAtuais() {
+            if (setorAtual === 'ENF') return dadosEnf;
+            if (setorAtual === 'UTI') return dadosUti;
+            return dadosUpa;
+        }
+
+        function verificarRiscoCritico(observacao) {
+            if (!observacao) return false;
+            const palavrasCriticas = ['alergia', 'broncoaspiração', 'risco', 'restrição severa', 'choque anafilático', 'intolerância'];
+            const obsMin = observacao.toLowerCase();
+            return palavrasCriticas.some(palavra => obsMin.includes(palavra));
+        }
+
+        function renderizarLista(lista) {
+            const div = document.getElementById("listaPacientes");
+            div.innerHTML = "";
+            if (!lista || lista.length === 0) {
+                div.innerHTML = "<p style='text-align:center;padding:20px;color:var(--text-muted)'>Nenhum paciente encontrado.</p>";
+                return;
+            }
+            lista.forEach(p => {
+                let isCritico = verificarRiscoCritico(p['OBSERVAÇÕES']);
+                let item = document.createElement("div");
+                item.className = `patient-item ${isCritico ? 'alerta-critico' : ''}`;
+                item.onclick = () => adicionarFila(p);
+                let sub = (setorAtual === 'ENF') ? (p['ENFERMARIA'] || 'Sem Ala') : (setorAtual === 'UTI' ? 'UTI' : 'UPA');
+                let dieta = p['DIETA'] ? p['DIETA'] : 'Não prescrita';
+                item.innerHTML = `
+                    <h4>${p['LEITO'] || '?'} - ${p['NOME DO PACIENTE']}</h4>
+                    <p>${sub} | <strong>${dieta}</strong></p>
+                    ${isCritico ? '<span class="material-icons icon-alert" title="Alerta Clínico nas Observações!">warning</span>' : ''}
+                `;
+                div.appendChild(item);
+            });
+        }
+
+        function filtrarLista() {
+            let termo = document.getElementById("inputBusca").value.toLowerCase();
+            let listaBase = getDadosAtuais();
+            let filtrados = listaBase.filter(p => {
+                let nome = String(p['NOME DO PACIENTE'] || '').toLowerCase();
+                let leito = String(p['LEITO'] || '').toLowerCase();
+                return nome.includes(termo) || leito.includes(termo);
+            });
+            renderizarLista(filtrados);
+        }
+
+        // --- HIGIENIZAÇÃO DE DADOS PARA O GRÁFICO (DATA CLEANSING) ---
+        function categorizarDieta(dietaBruta) {
+            if (!dietaBruta || dietaBruta.trim() === '') return 'Não Informada';
+
+            // Remove acentos e converte para minúsculas
+            let d = dietaBruta.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+
+            // Lógica de agrupamento por palavras-chave
+            if (d.includes('zero') || d.includes('jejum')) return 'Zero / Jejum';
+            if (d.includes('livre') || d.includes('normal')) return 'Livre / Normal';
+            if (d.includes('liquida')) return 'Líquida (Todas)';
+            if (d.includes('pastosa')) return 'Pastosa (Todas)';
+            if (d.includes('branda')) return 'Branda';
+            if (d.includes('enteral') || d.includes('sonda')) return 'Enteral / Sonda';
+            if (d.includes('diabetica') || d.includes('low carb')) return 'Específica (Diabetes/Glicemia)';
+            if (d.includes('hipossodica') || d.includes('dash')) return 'Específica (Hipossódica)';
+            if (d.includes('hiperproteica') || d.includes('hipercalorica')) return 'Suplementada (Hiper)';
+
+            return 'Outras Prescrições';
+        }
+
+        function atualizarGrafico(lista) {
+            const ctx = document.getElementById('graficoDietas').getContext('2d');
+
+            // Conta as ocorrências usando as categorias higienizadas
+            let contagemDietas = {};
+            lista.forEach(p => {
+                let categoria = categorizarDieta(p['DIETA']);
+                contagemDietas[categoria] = (contagemDietas[categoria] || 0) + 1;
+            });
+
+            // Converte o objeto para array para podermos ordenar
+            let arrayCategorias = Object.keys(contagemDietas).map(key => ({
+                label: key,
+                count: contagemDietas[key]
+            }));
+
+            // Ordena do maior para o menor
+            arrayCategorias.sort((a, b) => b.count - a.count);
+
+            // Regra do "Top 6 + Outras" para evitar gráficos estilhaçados
+            const MAX_FATIAS = 6;
+            let labelsFinal = [];
+            let dataFinal = [];
+            let somaOutras = 0;
+
+            arrayCategorias.forEach((item, index) => {
+                if (index < MAX_FATIAS) {
+                    labelsFinal.push(item.label);
+                    dataFinal.push(item.count);
+                } else {
+                    somaOutras += item.count;
+                }
+            });
+
+            if (somaOutras > 0) {
+                labelsFinal.push('Outras/Menores');
+                dataFinal.push(somaOutras);
+            }
+
+            const cores = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#64748b'];
+            const bgColors = labelsFinal.map((_, i) => cores[i % cores.length]);
+            const textColor = document.documentElement.getAttribute('data-theme') === 'dark' ? '#e0e0e0' : '#4b5563';
+
+            if (instanciaGrafico) instanciaGrafico.destroy();
+            if (labelsFinal.length === 0) return;
+
+            instanciaGrafico = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labelsFinal,
+                    datasets: [{
+                        data: dataFinal,
+                        backgroundColor: bgColors,
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: { position: 'right', labels: { color: textColor, font: { family: "'Segoe UI', sans-serif", size: 11 } } },
+                        tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', padding: 12, cornerRadius: 8, titleFont: { size: 13 }, bodyFont: { size: 13 } }
+                    }
+                }
+            });
+        }
+
+        function adicionarFila(p) {
+            let jaExiste = filaImpressao.some(item => String(item['LEITO']) === String(p['LEITO']) && String(item['NOME DO PACIENTE']) === String(p['NOME DO PACIENTE']));
+            if (jaExiste) { mostrarNotificacao(`${p['NOME DO PACIENTE']} já está na fila.`, 'warning'); return; }
+            filaImpressao.push(p);
+            atualizarFila();
+        }
+
+        function limparFila() {
+            if (filaImpressao.length > 0) { filaImpressao = []; atualizarFila(); mostrarNotificacao("Fila limpa com sucesso.", "info"); }
+        }
+
+        function adicionarTodos() {
+            let lista = getDadosAtuais();
+            let adicionados = 0;
+            lista.forEach(p => {
+                let jaExiste = filaImpressao.some(item => String(item['LEITO']) === String(p['LEITO']) && String(item['NOME DO PACIENTE']) === String(p['NOME DO PACIENTE']));
+                if (!jaExiste) { filaImpressao.push(p); adicionados++; }
+            });
+            atualizarFila();
+            if (adicionados > 0) mostrarNotificacao(`${adicionados} pacientes adicionados à fila.`, "success");
+        }
+
+        function removerDaFila(index) { filaImpressao.splice(index, 1); atualizarFila(); }
+
+        function atualizarFila() {
+            document.getElementById("contadorFila").innerText = `${filaImpressao.length} etiquetas na fila`;
+            const ul = document.getElementById("listaFila");
+            ul.innerHTML = "";
+            if (filaImpressao.length === 0) {
+                ul.innerHTML = '<li class="empty-msg" style="justify-content: center; color: var(--text-muted); border: none;">Fila vazia. Selecione pacientes no menu lateral.</li>';
+            } else {
+                filaImpressao.forEach((p, i) => {
+                    let nome = p['NOME DO PACIENTE'] || 'Sem Nome';
+                    let leito = p['LEITO'] || '?';
+                    ul.innerHTML += `
+                        <li>
+                            <span style="display:flex; align-items:center; gap:8px;">
+                                <span class="material-icons" style="color:var(--success-color); font-size:18px;">check_circle</span>
+                                <b>${leito}</b> - ${nome}
+                            </span>
+                            <button class="btn-remove-queue" onclick="removerDaFila(${i})" title="Remover">
+                                <span class="material-icons" style="font-size:18px;">delete_outline</span>
+                            </button>
+                        </li>
+                    `;
+                });
+                const areaFila = document.querySelector('.queue-area');
+                areaFila.scrollTop = areaFila.scrollHeight;
+            }
+        }
+
+        async function imprimirFila() {
+            if (filaImpressao.length === 0) { mostrarNotificacao("Adicione pacientes à fila primeiro.", "warning"); return; }
+            if (window.pywebview && window.pywebview.api) {
+                let msg = await pywebview.api.imprimir_etiquetas(filaImpressao);
+                if (msg !== "Cancelado.") {
+                    if (msg.includes("Erro") || msg.includes("ERRO")) mostrarNotificacao(msg, "error");
+                    else mostrarNotificacao(msg, "success");
+                }
+            }
+        }
+
+        async function gerarRelatorio(funcaoPython, tipo) {
+            if (window.pywebview && window.pywebview.api) {
+                let msg = await window.pywebview.api[funcaoPython](tipo);
+                if (msg !== "Cancelado.") {
+                    if (msg.includes("Erro") || msg.includes("ERRO")) mostrarNotificacao(msg, "error");
+                    else mostrarNotificacao(msg, "success");
+                }
+            }
+        }
+
+        function gerarRelatorioSimples() {
+            if (setorAtual === 'ENF') gerarRelatorio('gerar_relatorio_enf', 'simples');
+            else if (setorAtual === 'UTI') gerarRelatorio('gerar_relatorio_uti', 'simples');
+            else gerarRelatorio('gerar_relatorio_upa', 'simples');
+        }
+
+        function gerarMapaGeral() {
+            if (setorAtual === 'ENF') gerarRelatorio('gerar_relatorio_enf', 'geral');
+            else if (setorAtual === 'UTI') gerarRelatorio('gerar_relatorio_uti', 'geral');
+            else gerarRelatorio('gerar_relatorio_upa', 'geral');
+        }
+
+        // --- EDITOR DE PLANILHA COM O NOVO DATALIST ---
+        function renderizarEditor() {
+            const container = document.getElementById("editorControls");
+            const cls = (aba) => abaEditorAtual === aba ? 'btn-primary' : 'btn-secondary';
+
+            container.innerHTML = `
+                <button class="btn ${cls('ENF')}" onclick="trocarEditor('ENF')">Enfermarias</button>
+                <button class="btn ${cls('UTI')}" onclick="trocarEditor('UTI')">UTI</button>
+                <button class="btn ${cls('UPA')}" onclick="trocarEditor('UPA')">UPA</button>
+            `;
+
+            let dados = abaEditorAtual === 'ENF' ? editorEnf : (abaEditorAtual === 'UTI' ? editorUti : editorUpa);
+            const tbody = document.getElementById("corpoTabelaEditor");
+            const thead = document.querySelector("#tabelaEditor thead");
+            tbody.innerHTML = ""; thead.innerHTML = "";
+
+            let trHead = document.createElement("tr");
+            if (abaEditorAtual === 'ENF') {
+                trHead.innerHTML = `<th>ENFERMARIA / SETOR</th><th>LEITO</th><th>NOME DO PACIENTE</th><th>DIETA PRESCRITA</th><th>OBSERVAÇÕES CLÍNICAS</th><th style="width:50px; text-align:center;">AÇÃO</th>`;
+            } else {
+                trHead.innerHTML = `<th>LEITO</th><th>NOME DO PACIENTE</th><th>DIETA PRESCRITA</th><th>OBSERVAÇÕES CLÍNICAS</th><th style="width:50px; text-align:center;">AÇÃO</th>`;
+            }
+            thead.appendChild(trHead);
+            dados.forEach(row => criarLinhaEditor(tbody, row));
+        }
+
+        function criarLinhaEditor(tbody, row = {}) {
+            let tr = document.createElement("tr");
+            let isCritico = verificarRiscoCritico(row['OBSERVAÇÕES']);
+            if (isCritico) tr.style.borderLeft = "3px solid var(--danger-color)";
+
+            let html = "";
+            const val = (k) => escaparTexto(row[k]);
+
+            if (abaEditorAtual === 'ENF') html += `<td><input class="edit-enf" value="${val('ENFERMARIA')}" placeholder="Ex: Pediatria"></td>`;
+
+            html += `
+                <td><input class="edit-leito" value="${val('LEITO')}" placeholder="Ex: 101"></td>
+                <td><input class="edit-nome" value="${val('NOME DO PACIENTE')}" placeholder="Nome Completo"></td>
+                <!-- Repare no atributo 'list' apontando para o datalist criado no topo do HTML -->
+                <td><input class="edit-dieta" value="${val('DIETA')}" placeholder="Tipo de Dieta" list="lista-dietas-padrao"></td>
+                <td><input class="edit-obs" value="${val('OBSERVAÇÕES')}" placeholder="Alergias, Restrições..."></td>
+                <td style="text-align:center; vertical-align: middle;">
+                    <button class="btn-remove" tabindex="-1" onclick="this.closest('tr').remove()" title="Eliminar Paciente">
+                        <span class="material-icons" style="font-size:20px">delete</span>
+                    </button>
+                </td>
+            `;
+            tr.innerHTML = html;
+            tbody.appendChild(tr);
+        }
+
+        function trocarEditor(tipo) { salvarEstadoTemporario(); abaEditorAtual = tipo; renderizarEditor(); }
+
+        function salvarEstadoTemporario() {
+            const linhas = document.querySelectorAll("#corpoTabelaEditor tr");
+            let novosDados = [];
+            linhas.forEach(tr => {
+                let obj = {};
+                if (abaEditorAtual === 'ENF') obj['ENFERMARIA'] = tr.querySelector(".edit-enf").value;
+                obj['LEITO'] = tr.querySelector(".edit-leito").value;
+                obj['NOME DO PACIENTE'] = tr.querySelector(".edit-nome").value;
+                obj['DIETA'] = tr.querySelector(".edit-dieta").value;
+                obj['OBSERVAÇÕES'] = tr.querySelector(".edit-obs").value;
+                if (obj['LEITO'] || obj['NOME DO PACIENTE']) novosDados.push(obj);
+            });
+            if (abaEditorAtual === 'ENF') editorEnf = novosDados;
+            else if (abaEditorAtual === 'UTI') editorUti = novosDados;
+            else editorUpa = novosDados;
+        }
+
+        function adicionarLinhaVazia() {
+            criarLinhaEditor(document.getElementById("corpoTabelaEditor"));
+            const tbody = document.getElementById("corpoTabelaEditor");
+            tbody.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            setTimeout(() => {
+                const inputs = tbody.lastElementChild.querySelectorAll('input');
+                if (inputs.length > 0) inputs[0].focus();
+            }, 100);
+        }
+
+        async function salvarExcel() {
+            salvarEstadoTemporario();
+            mostrarNotificacao("A gravar alterações no Excel, aguarde...", "info");
+            if (window.pywebview && window.pywebview.api) {
+                let res = await pywebview.api.salvar_dados_excel(editorEnf, editorUti, editorUpa);
+                if (res.sucesso) {
+                    mostrarNotificacao(res.msg, "success");
+                    carregarDados();
+                } else mostrarNotificacao(res.msg, "error");
+            }
+        }
+    </script>
 </body>
 
 </html>
