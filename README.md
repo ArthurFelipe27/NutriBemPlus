@@ -79,57 +79,54 @@ Antes de executar o projeto, certifique-se de ter:
 
 ### 1️⃣ Clone o repositório
 
-```bash
-git clone [https://github.com/ArthurFelipe27/NutriBemPlus.git](https://github.com/ArthurFelipe27/NutriBemPlus.git)
-cd NutriBemPlus
+``git clone`` [https://github.com/ArthurFelipe27/NutriBemPlus.git](https://github.com/ArthurFelipe27/NutriBemPlus.git)  
+``cd NutriBemPlus``  
+
+
 
 ### 2️⃣ Instale as dependências
 No terminal, execute o comando para instalar as bibliotecas necessárias:
 
 Bash
-''pip install -r requirements.txt''
+``pip install -r requirements.txt``
 
 ### 3️⃣ Execute a Aplicação
 Inicie o controlador principal:
-
-Bash
-python main.py
+``python main.py``
 A interface desktop abrirá automaticamente. A base de dados (pacientes.xlsx) e a pasta oculta de backups (.backups/) serão geradas de forma autônoma pelo sistema.
 
 ### 📂 Estrutura de Pastas
 
-nutribemplus/
-├── .backups/              # Snapshots de segurança do Excel (gerado via código)
-├── web/
-│   └── index.html         # Frontend unificado (HTML, CSS, JS, Chart.js, Toastify)
-├── main.py                # Controller principal da API (Comunicação JS -> Python)
-├── excel_service.py       # Camada de serviço responsável pelo motor do Pandas e Backups
-├── pdf_service.py         # Camada de serviço dedicada ao motor do ReportLab (PDFs)
-├── logger.py              # Utilitário de registro de logs de erro
-├── pacientes.xlsx         # Banco de dados simulado (gerado via código)
-├── requirements.txt       # Dependências do Python
-└── README.md              # Documentação oficial
+nutribemplus/  
+├── .backups/              # Snapshots de segurança do Excel (gerado via código)  
+├── web/  
+│   └── index.html         # Frontend unificado (HTML, CSS, JS, Chart.js, Toastify)  
+├── main.py                # Controller principal da API (Comunicação JS -> Python)  
+├── excel_service.py       # Camada de serviço responsável pelo motor do Pandas e Backups  
+├── pdf_service.py         # Camada de serviço dedicada ao motor do ReportLab (PDFs)  
+├── logger.py              # Utilitário de registro de logs de erro  
+├── pacientes.xlsx         # Banco de dados simulado (gerado via código)  
+├── requirements.txt       # Dependências do Python  
+└── README.md              # Documentação oficial  
 
 ### 📸 Demonstração
 Dashboard Analítico e Alertas Clínicos
-<img width="1920" height="1080" alt="Dashboard NutriBem" src="COLOQUE_O_LINK_DA_IMAGEM_AQUI" />
+<img width="1920" height="1080" alt="Dashboard NutriBem" src="https://github.com/user-attachments/assets/c6406c0b-2ce2-4d91-b178-d4dff5e28bbb" />
 
 Gestor de Dados (Edição em Tempo Real)
-<img width="1920" height="1080" alt="Editor de Planilha" src="COLOQUE_O_LINK_DA_IMAGEM_AQUI" />
+<img width="1920" height="1080" alt="Editor de Planilha" src="https://github.com/user-attachments/assets/f59a7a4a-e192-46c5-8236-269bf80ce35e" />
 
-Emissão de Etiquetas (PDF)
-<img width="1920" height="1080" alt="Exemplo de Etiquetas PDF" src="COLOQUE_O_LINK_DA_IMAGEM_AQUI" />
-
-📌 Status do Projeto
+### 📌 Status do Projeto
 Projeto finalizado e refatorado, aplicando conceitos sólidos de Engenharia de Software como Separation of Concerns (SoC), Data Cleansing e Resiliência de Dados.
 
-🧑‍💻 Autor
-Arthur Felipe da Silva Matos 
-🔗 LinkedIn: https://www.linkedin.com/in/arthurfelipedasilvamatos
+### 🧑‍💻 Autor
+
+Arthur Felipe da Silva Matos    
+🔗 LinkedIn: https://www.linkedin.com/in/arthurfelipedasilvamatos  
 
 🌐 GitHub: https://github.com/ArthurFelipe27
 
-📝 Licença
-Este projeto está licenciado sob a Licença MIT.
+### 📝 Licença
+Este projeto está licenciado sob a Licença MIT.  
 
-Consulte o arquivo LICENSE para mais detalhes.
+Consulte o arquivo LICENSE para mais detalhes.  
